@@ -1,7 +1,6 @@
 static const char *TAG = "example";
 
 #include "lvgl.h" /* https://github.com/lvgl/lvgl.git */
-#include "demos/lv_demos.h"
 
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_ops.h"
@@ -14,8 +13,13 @@ static const char *TAG = "example";
 #include "driver/gpio.h"
 #include "esp_err.h"
 #include "esp_log.h"
+#include "esp_partition.h"
+#include "sdkconfig.h"
+#include "esp_event.h"
 
 #include "pin_config.h"
+
+#include "htool_api.h"
 
 esp_lcd_panel_io_handle_t io_handle = NULL;
 static lv_disp_draw_buf_t disp_buf; // contains internal graphic buffer(s) called draw buffer(s)
@@ -183,14 +187,11 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_timer_start_periodic(lvgl_tick_timer, 2 * 1000));
     ESP_LOGI(TAG,"LVGL ready to go");
 
-#if LV_USE_DEMO_WIDGETS
-    lv_demo_widgets();
-#elif LV_USE_DEMO_BENCHMARK
-    lv_demo_benchmark();
-#elif LV_USE_DEMO_STRESS
-    lv_demo_stress();
-#endif
-    ESP_LOGI(TAG, "Benchmark complete");
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
+    ESP_ERROR_CHECK(esp_netif_init());
+    htool_api_init();
+    htool_api_start();
+
     while(true) {
         vTaskDelay(pdMS_TO_TICKS(10));
         lv_timer_handler();
